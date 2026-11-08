@@ -39,6 +39,26 @@ jobs:
       - name: Unpack Android project
         run: unzip -q MLA_Android_Project_v0_1.zip
 
+      - name: Align Java and Kotlin JVM targets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("MLA_Android_Project/app/build.gradle.kts")
+          s = p.read_text()
+          block = """
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+          """
+          if "compileOptions {" not in s:
+              s = s.replace("android {", "android {\n" + block, 1)
+          p.write_text(s)
+          PY
+
       - name: Build debug APK
         run: gradle --no-daemon -p MLA_Android_Project assembleDebug
 
